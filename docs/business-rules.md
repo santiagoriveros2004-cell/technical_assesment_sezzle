@@ -120,9 +120,11 @@ The calculator UI behaves like a classic handheld calculator. All arithmetic is 
   - with no pending operator, stores the displayed value as the left operand;
   - after a new operand has been typed, sends the pending operation to the backend, shows the result and stores it as the left operand of the new operator;
   - immediately after another operator, replaces the pending operator.
-- `√` applies immediately to the displayed value. The result replaces the displayed value and any pending binary operator is kept: `9 + √16 =` displays `13`.
+- `√` applies immediately to the operand being typed or to a displayed result. The root replaces the displayed value and any pending binary operator is kept, so `9 + 16 √` displays `4` with `9 +` pending, and then `=` displays `13`.
+- `√` is ignored right after a binary operator, while the right operand has not been typed yet (`9 + √`).
 - `=` sends the pending operation when a right operand has been typed. Pressing `=` with no pending operator, with no right operand typed, or repeatedly has no effect.
-- After a result is shown, typing a digit or `.` starts a new operand.
+- After a result is shown, including the result of `√`, typing a digit or `.` starts a fresh calculation and discards any pending operator: `9 + 16 √ 5` displays `5` with nothing pending.
+- `±` on a displayed result toggles its sign; it is ignored right after a binary operator.
 
 ### 4.3 Entry rules
 
@@ -148,7 +150,8 @@ The calculator UI behaves like a classic handheld calculator. All arithmetic is 
 | `result_out_of_range` | Result is too large |
 | `invalid_number`, `number_too_long` | Invalid number |
 
-- A network failure, a timeout after 5 seconds, or any other non-422 response shows `Service unavailable` outside the display and keeps the calculator state unchanged, so pressing the same key again retries the operation.
+- A network failure, a timeout after 5 seconds, or any other non-422 response shows `Service unavailable` outside the display and keeps the calculator state unchanged, so pressing the same key again retries the operation. The message disappears on the next key press.
+- A 422 with an unknown error code, or a successful response without a valid decimal `result`, is treated as service unavailable.
 
 ### 4.5 Layout
 

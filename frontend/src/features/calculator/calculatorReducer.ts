@@ -142,7 +142,6 @@ function handleAwaitingOperand(state: AwaitingOperandState, input: CalculatorInp
     case "operator":
       return { ...state, pending: { ...state.pending, operator: input.operator } };
     case "squareRoot":
-      return calculateSquareRoot(state, state.pending.left, state.pending);
     case "toggleSign":
     case "backspace":
     case "equals":
@@ -156,7 +155,7 @@ function handleResult(state: ResultState, input: CalculatorInput): CalculatorSta
   switch (input.type) {
     case "digit":
     case "decimalPoint":
-      return startOperand(input, state.pending);
+      return startOperand(input, null);
     case "toggleSign":
       return withValue(state, toggleSign(state.value));
     case "operator":

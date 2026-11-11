@@ -337,21 +337,24 @@ describe("calculatorReducer", () => {
       expect(expressionOf(succeed(chaining, "13"))).toBe("13 ×");
     });
 
-    it("lets a newly typed operand replace the root while keeping the pending operator", () => {
+    it("starts a fresh calculation when a digit follows the root", () => {
       const rooted = succeed(press("9 + 16 √"), "4");
+      const restarted = press("5", rooted);
 
-      expect(requestOf(press("5 =", rooted))).toEqual({ operation: "add", a: "9", b: "5" });
+      expect(selectDisplay(restarted)).toEqual({ kind: "value", value: "5", expression: "" });
+      expect(press("=", restarted)).toBe(restarted);
     });
 
-    it("applies to the displayed left operand while waiting for the right operand", () => {
-      const calculating = press("9 + √");
+    it("starts a fresh calculation when a decimal point follows the root", () => {
+      const rooted = succeed(press("9 + 16 √"), "4");
 
-      expect(requestOf(calculating)).toEqual({ operation: "sqrt", a: "9" });
+      expect(selectDisplay(press(".", rooted))).toEqual({ kind: "value", value: "0.", expression: "" });
+    });
 
-      const rooted = succeed(calculating, "3");
+    it("is ignored while waiting for the right operand", () => {
+      const awaiting = press("9 +");
 
-      expect(selectDisplay(rooted)).toEqual({ kind: "value", value: "3", expression: "9 +" });
-      expect(requestOf(press("=", rooted))).toEqual({ operation: "add", a: "9", b: "3" });
+      expect(press("√", awaiting)).toBe(awaiting);
     });
 
     it("applies to a displayed result", () => {
