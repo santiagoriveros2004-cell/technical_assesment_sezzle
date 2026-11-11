@@ -1,0 +1,33 @@
+.display {
+  container-type: inline-size;
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--color-display);
+  color: var(--color-display-text);
+  text-align: right;
+}
+
+.expression {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--color-display-muted);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.value {
+  --max-font-size: 2.75rem;
+  --character-width: 0.62;
+
+  display: block;
+  min-height: calc(var(--max-font-size) * 1.2);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: min(var(--max-font-size), calc(100cqi / (var(--value-length) * var(--character-width))));
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  align-content: end;
+}
