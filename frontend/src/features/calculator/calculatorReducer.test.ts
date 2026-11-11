@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { BusinessErrorCode, CalculationOutcome } from "../../api/calculatorClient";
 import {
   calculatorReducer,
+  DIGITS,
   initialCalculatorState,
   MAX_OPERAND_DIGITS,
   selectDisplay,
   type CalculatorInput,
   type CalculatorState,
+  type Digit,
 } from "./calculatorReducer";
 
 const KEY_INPUTS: Record<string, CalculatorInput> = {
@@ -24,9 +26,13 @@ const KEY_INPUTS: Record<string, CalculatorInput> = {
   C: { type: "clear" },
 };
 
+function isDigit(key: string): key is Digit {
+  return DIGITS.some((digit) => digit === key);
+}
+
 function inputFor(key: string): CalculatorInput {
-  if (/^\d$/.test(key)) {
-    return { type: "digit", digit: key as Extract<CalculatorInput, { type: "digit" }>["digit"] };
+  if (isDigit(key)) {
+    return { type: "digit", digit: key };
   }
   const input = KEY_INPUTS[key];
   if (!input) {
