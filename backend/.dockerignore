@@ -1,0 +1,6 @@
+Dockerfile
+.dockerignore
+*.out
+*.test
+*.exe
+*_test.go
