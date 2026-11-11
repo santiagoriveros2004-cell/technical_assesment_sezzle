@@ -2,6 +2,7 @@ package calculator
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/cockroachdb/apd/v3"
 )
@@ -22,7 +23,7 @@ var registry = indexByName(
 	binary("percentage", percentage),
 )
 
-var operandFields = [...]string{"a", "b"}
+var operandNames = [...]string{"a", "b"}
 
 func Lookup(name string) (Operation, bool) {
 	operation, ok := registry[name]
@@ -33,8 +34,8 @@ func (o Operation) Name() string {
 	return o.name
 }
 
-func (o Operation) Arity() int {
-	return o.arity
+func (o Operation) OperandNames() []string {
+	return slices.Clone(operandNames[:o.arity])
 }
 
 func (o Operation) Calculate(operands ...string) (string, error) {
@@ -44,7 +45,7 @@ func (o Operation) Calculate(operands ...string) (string, error) {
 
 	values := make([]*apd.Decimal, len(operands))
 	for i, raw := range operands {
-		value, err := parseOperand(operandFields[i], raw)
+		value, err := parseOperand(operandNames[i], raw)
 		if err != nil {
 			return "", err
 		}

@@ -2,6 +2,7 @@ package calculator_test
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -200,15 +201,17 @@ func TestRounding(t *testing.T) {
 }
 
 func TestLookup(t *testing.T) {
-	for name, arity := range map[string]int{
-		"add": 2, "subtract": 2, "multiply": 2, "divide": 2, "power": 2, "percentage": 2, "sqrt": 1,
+	binary := []string{"a", "b"}
+	for name, wantOperands := range map[string][]string{
+		"add": binary, "subtract": binary, "multiply": binary, "divide": binary,
+		"power": binary, "percentage": binary, "sqrt": {"a"},
 	} {
 		operation, ok := calculator.Lookup(name)
 		if !ok {
 			t.Fatalf("Lookup(%q) not found", name)
 		}
-		if operation.Name() != name || operation.Arity() != arity {
-			t.Fatalf("Lookup(%q) = {%q, %d}, want {%q, %d}", name, operation.Name(), operation.Arity(), name, arity)
+		if operation.Name() != name || !slices.Equal(operation.OperandNames(), wantOperands) {
+			t.Fatalf("Lookup(%q) = {%q, %q}, want {%q, %q}", name, operation.Name(), operation.OperandNames(), name, wantOperands)
 		}
 	}
 
