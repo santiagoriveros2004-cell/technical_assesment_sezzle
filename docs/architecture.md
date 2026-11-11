@@ -196,7 +196,7 @@ sequenceDiagram
 | Precision | Exact decimal arithmetic in the backend only; numbers are strings end to end |
 | Validation | Defense in depth: the keypad cannot produce invalid operands, and the backend validates everything independently |
 | Error contract | RFC 9457 problem details with a stable `code` |
-| Observability | Structured JSON logs via `log/slog`, one access log line per request with method, path, status, duration and request ID; `X-Request-ID` is accepted or generated and echoed back |
+| Observability | Structured JSON logs via `log/slog`, one access log line per request with method, path, status, duration and request ID; `X-Request-ID` is accepted (1–128 visible ASCII characters) or assigned by the service and echoed back |
 | Resilience | Server read, write and idle timeouts; 1 KiB body limit; panic recovery; graceful shutdown; client-side 5 s timeout |
 | Security | No CORS surface (same origin); containers run as non-root; distroless runtime image for the service |
 | Statelessness | No storage; the service scales horizontally without coordination |

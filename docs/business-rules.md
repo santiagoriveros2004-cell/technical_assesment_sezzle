@@ -28,9 +28,9 @@ All numbers are exact decimals transported as JSON strings. Binary floating poin
 
 Results are computed exactly (or with enough working precision for square roots and negative exponents) and then normalized:
 
-1. Rounded to at most **10 fractional digits** using **half-even** rounding.
-2. If the integer part has more than **32 digits**, the operation fails with `result_out_of_range`.
-3. If integer digits plus fractional digits exceed 32, fractional digits are rounded away (half-even) until the total is 32. Rule 2 is re-checked after this rounding.
+1. If the integer part has more than **32 digits**, the operation fails with `result_out_of_range`.
+2. The exact value is rounded **once**, using **half-even** rounding, to `min(10, 32 − integer digits)` fractional digits. A value below 1 counts its leading `0` as one integer digit. Rounding once from the exact value avoids double-rounding errors.
+3. Rule 1 is re-checked after rounding, because rounding can carry into a new integer digit.
 4. Trailing fractional zeros and a trailing decimal point are removed.
 5. Negative zero is normalized to `0`.
 6. A non-zero result whose magnitude is below `0.00000000005` rounds to `0`.

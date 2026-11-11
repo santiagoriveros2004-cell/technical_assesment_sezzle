@@ -13,13 +13,15 @@ Every error response uses `Content-Type: application/problem+json` and follows [
 }
 ```
 
-`code` is the stable contract for clients. `detail` is for humans and may change. `field` is present only when a specific operand caused the error.
+`code` is the stable contract for clients. `detail` is for humans and may change. `title` uses the RFC 9110 reason phrases, so 413 is `Content Too Large` and 422 is `Unprocessable Content`.
+
+`field` is present only when a single operand is at fault: `invalid_number` and `number_too_long` (`a` or `b`), `negative_square_root` (`a`), and `exponent_not_integer` and `exponent_out_of_range` (`b`). It is omitted on request errors (4xx other than 422) and on errors that depend on both operands, such as `division_by_zero` and `result_out_of_range`.
 
 | Status | Code | When |
 |---|---|---|
-| 400 | `invalid_request` | Malformed JSON, trailing data after the JSON object, operands sent as JSON numbers, a required operand missing, `b` sent to `sqrt`, or an unknown field |
-| 404 | `not_found` | The path does not exist |
-| 404 | `unknown_operation` | `/api/v1/operations/{operation}` with an unsupported operation |
+| 400 | `invalid_request` | Malformed JSON, trailing data after the JSON object, operands sent as JSON numbers or `null`, a required operand missing, `b` sent to `sqrt`, or an unknown field (field names are case-sensitive) |
+| 404 | `not_found` | The path does not exist, including any method other than `GET` on `/healthz` |
+| 404 | `unknown_operation` | `/api/v1/operations/{operation}` with an unsupported operation, whatever the method |
 | 405 | `method_not_allowed` | Any method other than `POST` on an operation endpoint; the `Allow: POST` header is set |
 | 413 | `payload_too_large` | Request body larger than 1 KiB |
 | 415 | `unsupported_media_type` | `Content-Type` is not `application/json` (parameters such as `charset=utf-8` are accepted) |
