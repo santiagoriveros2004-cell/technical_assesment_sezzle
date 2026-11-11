@@ -1,0 +1,238 @@
+openapi: 3.1.0
+info:
+  title: Calculator Service API
+  version: 1.0.0
+  description: |
+    Exact decimal arithmetic over HTTP. Operands and results are decimal strings.
+    Business rules are defined in docs/business-rules.md.
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: operations
+  - name: health
+paths:
+  /api/v1/operations/{operation}:
+    parameters:
+      - name: operation
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/OperationName"
+    post:
+      tags: [operations]
+      operationId: calculate
+      summary: Perform an arithmetic operation
+      description: |
+        `sqrt` takes only `a`. Every other operation requires both `a` and `b`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/BinaryOperationRequest"
+                - $ref: "#/components/schemas/UnaryOperationRequest"
+            examples:
+              add:
+                value: { a: "0.1", b: "0.2" }
+              sqrt:
+                value: { a: "2" }
+      responses:
+        "200":
+          description: Operation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+              examples:
+                add:
+                  value: { operation: add, operands: ["0.1", "0.2"], result: "0.3" }
+                sqrt:
+                  value: { operation: sqrt, operands: ["2"], result: "1.4142135624" }
+        "400":
+          $ref: "#/components/responses/InvalidRequest"
+        "404":
+          $ref: "#/components/responses/UnknownOperation"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/UnprocessableOperation"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /healthz:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness probe
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+components:
+  schemas:
+    OperationName:
+      type: string
+      enum: [add, subtract, multiply, divide, power, sqrt, percentage]
+    DecimalString:
+      type: string
+      pattern: "^-?\\d+(\\.\\d+)?$"
+      description: Plain decimal notation with at most 32 digits.
+      examples: ["-12.5"]
+    BinaryOperationRequest:
+      type: object
+      additionalProperties: false
+      required: [a, b]
+      properties:
+        a:
+          $ref: "#/components/schemas/DecimalString"
+        b:
+          $ref: "#/components/schemas/DecimalString"
+    UnaryOperationRequest:
+      type: object
+      additionalProperties: false
+      required: [a]
+      properties:
+        a:
+          $ref: "#/components/schemas/DecimalString"
+    OperationResult:
+      type: object
+      required: [operation, operands, result]
+      properties:
+        operation:
+          $ref: "#/components/schemas/OperationName"
+        operands:
+          type: array
+          minItems: 1
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/DecimalString"
+          description: Operands exactly as received.
+        result:
+          $ref: "#/components/schemas/DecimalString"
+    Problem:
+      type: object
+      description: RFC 9457 problem details with a stable machine-readable code.
+      required: [type, title, status, detail, code]
+      properties:
+        type:
+          type: string
+          const: about:blank
+        title:
+          type: string
+          description: HTTP status text.
+        status:
+          type: integer
+        detail:
+          type: string
+          description: Human-readable explanation of this occurrence.
+        code:
+          $ref: "#/components/schemas/ErrorCode"
+        field:
+          type: string
+          enum: [a, b]
+          description: Operand that caused the error, when applicable.
+    ErrorCode:
+      type: string
+      enum:
+        - invalid_request
+        - not_found
+        - unknown_operation
+        - method_not_allowed
+        - payload_too_large
+        - unsupported_media_type
+        - invalid_number
+        - number_too_long
+        - division_by_zero
+        - negative_square_root
+        - exponent_not_integer
+        - exponent_out_of_range
+        - result_out_of_range
+        - internal_error
+  responses:
+    InvalidRequest:
+      description: Malformed JSON, JSON number operands, missing or unexpected fields
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Bad Request
+            status: 400
+            detail: "field \"b\" is required for operation add"
+            code: invalid_request
+    UnknownOperation:
+      description: Operation name is not supported
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: about:blank
+            title: Not Found
+            status: 404
+            detail: "operation \"modulo\" is not supported"
+            code: unknown_operation
+    MethodNotAllowed:
+      description: Only POST is allowed. The Allow header is set to POST.
+      headers:
+        Allow:
+          schema:
+            type: string
+            const: POST
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    PayloadTooLarge:
+      description: Request body exceeds 1 KiB
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    UnsupportedMediaType:
+      description: Content-Type is not application/json
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    UnprocessableOperation:
+      description: Operands are well-formed JSON but violate a business rule
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          examples:
+            divisionByZero:
+              value:
+                type: about:blank
+                title: Unprocessable Content
+                status: 422
+                detail: division by zero
+                code: division_by_zero
+            numberTooLong:
+              value:
+                type: about:blank
+                title: Unprocessable Content
+                status: 422
+                detail: operand "a" exceeds 32 digits
+                code: number_too_long
+                field: a
+    InternalError:
+      description: Unexpected server failure
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
