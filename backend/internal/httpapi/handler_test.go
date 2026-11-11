@@ -289,11 +289,11 @@ func TestHealth(t *testing.T) {
 func TestRequestID(t *testing.T) {
 	handler, _ := newHandler(t)
 
-	t.Run("generated when absent", func(t *testing.T) {
+	t.Run("assigned when absent", func(t *testing.T) {
 		first := serve(t, handler, request{method: http.MethodGet, path: "/healthz"}).Header().Get("X-Request-ID")
 		second := serve(t, handler, request{method: http.MethodGet, path: "/healthz"}).Header().Get("X-Request-ID")
 		if first == "" || second == "" || first == second {
-			t.Fatalf("generated request IDs = %q, %q; want distinct non-empty values", first, second)
+			t.Fatalf("assigned request IDs = %q, %q; want distinct non-empty values", first, second)
 		}
 	})
 
@@ -322,7 +322,7 @@ func TestRequestID(t *testing.T) {
 			req := request{method: http.MethodGet, path: "/healthz", header: http.Header{"X-Request-Id": {unsafe}}}
 			got := serve(t, handler, req).Header().Get("X-Request-ID")
 			if got == "" || got == unsafe {
-				t.Fatalf("X-Request-ID = %q, want a generated value", got)
+				t.Fatalf("X-Request-ID = %q, want a server-assigned value", got)
 			}
 		})
 	}
