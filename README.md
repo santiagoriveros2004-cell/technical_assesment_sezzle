@@ -144,7 +144,7 @@ The exact behavior was agreed before implementation and is specified in [`docs/b
 
 ## Documentation
 
-- [Architecture](docs/architecture.md): context, container and component diagrams, keypad state machine and request flows
+- [Architecture](docs/architecture.md): context, container and component diagrams and request flows
 - [Business rules](docs/business-rules.md): number model, rounding, keypad behavior and acceptance scenarios
 - [API contract](docs/api/openapi.yaml) and [error catalog](docs/api/errors.md)
 - [Architecture decision records](docs/adr/README.md)

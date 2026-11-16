@@ -102,37 +102,7 @@ flowchart TB
 - `useCalculator` executes the pending request through `calculatorClient` and dispatches the outcome back to the reducer.
 - `calculatorClient` returns a discriminated union: a result, a business error with its code, or an unavailable outcome.
 
-## 5. Keypad state machine
-
-```mermaid
-stateDiagram-v2
-    [*] --> Entering
-    Entering --> Entering: digit, point, sign, backspace
-    Entering --> AwaitingOperand: operator (no pending operation)
-    AwaitingOperand --> AwaitingOperand: operator (replaces pending)
-    AwaitingOperand --> EnteringRight: digit, point
-    EnteringRight --> EnteringRight: digit, point, sign, backspace
-    EnteringRight --> Calculating: operator or equals
-    Entering --> Calculating: square root
-    EnteringRight --> Calculating: square root
-    Calculating --> AwaitingOperand: success after operator
-    Calculating --> Result: success after equals or square root
-    Calculating --> Error: business error (422)
-    Calculating --> Entering: service unavailable (state restored)
-    Result --> Entering: digit, point
-    Result --> AwaitingOperand: operator
-    Result --> Calculating: square root
-    Error --> Entering: digit, point
-    Entering --> Entering: clear
-    AwaitingOperand --> Entering: clear
-    EnteringRight --> Entering: clear
-    Result --> Entering: clear
-    Error --> Entering: clear
-```
-
-When the service is unavailable the machine returns to the exact state it had before the request, not only to `Entering`. Section 4 of [business rules](business-rules.md) defines every transition precisely.
-
-## 6. Request flows
+## 5. Request flows
 
 ### Successful chained calculation
 
@@ -189,7 +159,7 @@ sequenceDiagram
     R-->>U: display 8
 ```
 
-## 7. Cross-cutting concerns
+## 6. Cross-cutting concerns
 
 | Concern | Approach |
 |---|---|
@@ -201,6 +171,6 @@ sequenceDiagram
 | Security | No CORS surface (same origin); containers run as non-root; distroless runtime image for the service |
 | Statelessness | No storage; the service scales horizontally without coordination |
 
-## 8. Decisions
+## 7. Decisions
 
 Significant decisions are recorded as [architecture decision records](adr/README.md).
